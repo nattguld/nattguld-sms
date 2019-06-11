@@ -10,6 +10,7 @@ This library uses the following dependencies:
 ## About
 Requests phone numbers and retrieves SMS's through 3rd party services.
 The library is session based allowing to multi thread and change configurations without interruping running sessions.
+By using the nattguld-data dependency any configurations are stored for ease of use. This can be stripped out without too much effort.
 
 ## Setup configurations
 Before using this library configurations must be set so we know which 3rd party service to use and have the required details such as an API key.
