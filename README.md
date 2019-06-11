@@ -9,6 +9,7 @@ This library uses the following dependencies:
 
 ## About
 Requests phone numbers and retrieves SMS's through 3rd party services.
+The library is session based allowing to multi thread and change configurations without interruping running sessions.
 
 ## Setup configurations
 Before using this library configurations must be set so we know which 3rd party service to use and have the required details such as an API key.
@@ -36,3 +37,7 @@ try (SMSTask task = new SMSTask(Platform.EXAMPLE)) {
   }
 }
 ```
+
+## Notes
+At this point only a few platforms are added to the library. You can very easily add more by checking the docs of the 3rd party provider for the available platforms and their order codes.  
+Add new platforms in Platform.java and provider their codes in SMSProvider.java
