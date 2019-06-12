@@ -128,6 +128,12 @@ public class GetSMSCode extends SMSSession {
 
 	@Override
 	public String getBalance() {
+		if (!loggedIn) {
+			if (!login()) {
+				return null;
+			}
+			loggedIn = true;
+		}
 		return balance;
 	}
 
