@@ -73,6 +73,8 @@ public class SMSConfig extends Config {
 		
 		setUsername(smsProvider.requiresUsername() ? username : null);
 		setAPIKey(smsProvider.requiresAPIKey() ? apiKey : null);
+		
+		save();
 		return this;
 	}
 	
@@ -85,6 +87,8 @@ public class SMSConfig extends Config {
 	 */
 	public SMSConfig setSMSReceiveTimeout(int smsReceiveTimeout) {
 		this.smsReceiveTimeout = smsReceiveTimeout;
+		
+		save();
 		return this;
 	}
 	
