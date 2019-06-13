@@ -3,6 +3,7 @@ package com.nattguld.sms.cfg;
 import java.util.Objects;
 
 import com.nattguld.data.cfg.Config;
+import com.nattguld.data.cfg.ConfigManager;
 import com.nattguld.data.json.JsonReader;
 import com.nattguld.data.json.JsonWriter;
 import com.nattguld.sms.SMSProvider;
@@ -168,6 +169,15 @@ public class SMSConfig extends Config {
 	 */
 	public String getAPIKey() {
 		return apiKey;
+	}
+	
+	/**
+	 * Retrieves the config.
+	 * 
+	 * @return The config.
+	 */
+	public static SMSConfig getConfig() {
+		return (SMSConfig)ConfigManager.getConfig(new SMSConfig());
 	}
 
 }
