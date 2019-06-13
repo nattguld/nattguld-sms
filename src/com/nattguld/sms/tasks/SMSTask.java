@@ -2,12 +2,14 @@ package com.nattguld.sms.tasks;
 
 import java.util.Objects;
 
-import com.nattguld.data.cfg.ConfigManager;
 import com.nattguld.http.HttpClient;
 import com.nattguld.sms.Platform;
 import com.nattguld.sms.cfg.SMSConfig;
 import com.nattguld.sms.numbers.SMSNumber;
-import com.nattguld.sms.tasks.impl.*;
+import com.nattguld.sms.tasks.impl.GetSMSCode;
+import com.nattguld.sms.tasks.impl.Manual;
+import com.nattguld.sms.tasks.impl.SMSActivate;
+import com.nattguld.sms.tasks.impl.SMSPVA;
 import com.nattguld.util.Misc;
 
 /**
@@ -24,9 +26,9 @@ public class SMSTask implements AutoCloseable {
 	private final Platform platform;
 	
 	/**
-	 * The SMS config at the start of the task.
+	 * The SMS receival timeout.
 	 */
-	private final SMSConfig cfg;
+	private final int timeout;
 	
 	/**
 	 * The SMS session.
@@ -56,7 +58,7 @@ public class SMSTask implements AutoCloseable {
 	 */
 	public SMSTask(Platform platform) {
 		this.platform = platform;
-		this.cfg = (SMSConfig)ConfigManager.getConfig(new SMSConfig());
+		this.timeout = SMSConfig.getConfig().getSMSReceiveTimeout();
 		
 		startSession();
 	}
@@ -67,12 +69,12 @@ public class SMSTask implements AutoCloseable {
 	 * @param cfg The current SMS config.
 	 */
 	private void startSession() {
-		String code = cfg.getSMSProvider().getPlatformCode(platform);
+		String code = Objects.isNull(platform) ? "" : SMSConfig.getConfig().getSMSProvider().getPlatformCode(platform);
 		
-		switch (cfg.getSMSProvider()) {
+		switch (SMSConfig.getConfig().getSMSProvider()) {
 		case GETSMSCODE:
 			this.c = new HttpClient();
-			this.session = new GetSMSCode(cfg.getUsername(), cfg.getAPIKey(), c, code);
+			this.session = new GetSMSCode(SMSConfig.getConfig().getUsername(), SMSConfig.getConfig().getAPIKey(), c, code);
 			break;
 			
 		case NONE:
@@ -81,17 +83,17 @@ public class SMSTask implements AutoCloseable {
 			
 		case SMSPVA:
 			this.c = new HttpClient();
-			this.session = new SMSPVA(cfg.getAPIKey(), c, code);
+			this.session = new SMSPVA(SMSConfig.getConfig().getAPIKey(), c, code);
 			break;
 			
 		case SMS_ACTIVATE:
 			this.c = new HttpClient();
-			this.session = new SMSActivate(cfg.getAPIKey(), c, code);
+			this.session = new SMSActivate(SMSConfig.getConfig().getAPIKey(), c, code);
 			break;
 			
-			default:
-				System.err.println("No session start present for " + cfg.getSMSProvider().getName());
-				break;
+		default:
+			System.err.println("No session start present for " + SMSConfig.getConfig().getSMSProvider().getName());
+			break;
 		}
 	}
 	
@@ -101,8 +103,12 @@ public class SMSTask implements AutoCloseable {
 	 * @return The SMS number.
 	 */
 	public SMSNumber requestSMSNumber() {
-		smsNumber = session.requestNumber();
-
+		try {
+			smsNumber = session.requestNumber();
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 		if (Objects.isNull(smsNumber.getNumber())) {
 			return null;
 		}
@@ -118,11 +124,15 @@ public class SMSTask implements AutoCloseable {
 		String sms = null;
 		int elapsed = 0;
 		
-		while (Objects.isNull(sms) && elapsed >= cfg.getSMSReceiveTimeout()) {
+		while (Objects.isNull(sms) && elapsed >= timeout) {
 			Misc.sleep(20000);
 			
-			sms = session.retrieveSMS(smsNumber);
-			
+			try {
+				sms = session.retrieveSMS(smsNumber);
+				
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 			elapsed += 20;
 		}
 		if (Objects.isNull(sms)) {
@@ -131,6 +141,21 @@ public class SMSTask implements AutoCloseable {
 		}
 		this.smsReceived = true;
 		return sms;
+	}
+	
+	/**
+	 * Attempts to retrieve the balance.
+	 * 
+	 * @return The balance.
+	 */
+	public String retrieveBalance() {
+		try {
+			return session.getBalance();
+			
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return "NA";
+		}
 	}
 
 	@Override
