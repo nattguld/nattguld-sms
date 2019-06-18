@@ -133,9 +133,6 @@ public class SMSTask implements AutoCloseable {
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-			if (Objects.nonNull(sms) && sms.equals("INTERRUPT")) {
-				break;
-			}
 			elapsed += 20;
 		}
 		if (Objects.isNull(sms) || sms.equals("INTERRUPT")) {
