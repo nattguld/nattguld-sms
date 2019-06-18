@@ -1,5 +1,7 @@
 package com.nattguld.sms.tasks.impl;
 
+import java.util.Objects;
+
 import com.nattguld.http.HttpClient;
 import com.nattguld.http.content.bodies.FormBody;
 import com.nattguld.http.requests.impl.PostRequest;
@@ -36,30 +38,28 @@ public class SMSActivate extends SMSSession {
 	}
 	
 	/**
-	 * Retrieves whether we started listening for the SMS.
+	 * Updates the status of a number.
 	 * 
-	 * @param id The SMS id.
+	 * @param smsNumber The number.
 	 * 
-	 * @return The result.
+	 * @param status The status.
+	 * 
+	 * @return The response.
 	 */
-	private boolean startListening(String id) {
+	private RequestResponse updateStatus(SMSNumber smsNumber, int status) {
 		FormBody fb = new FormBody();
 		fb.add("api_key", getAPIKey());
 		fb.add("action", "setStatus");
-		fb.add("status", 1);
-		fb.add("id", id);
+		fb.add("id", smsNumber.getId());
+		fb.add("status", status);
 		
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 		
 		if (!rr.validate()) {
-			System.err.println("Failed to start listening for SMS code (" + rr.getCode() + ")");
-			return false;
+			System.err.println("Failed to update number status (" + status + ")");
+			return null;
 		}
-		if (!rr.getResponseContent().equals("ACCESS_READY")) {
-			System.err.println("Failed to start listening for SMS code: " + rr.getResponseContent());
-			return false;
-		}
-		return true;
+		return rr;
 	}
 
 	@Override
@@ -88,8 +88,15 @@ public class SMSActivate extends SMSSession {
 	@Override
 	public String retrieveSMS(SMSNumber smsNumber) {
 		if (!listening) {
-			if (!startListening(smsNumber.getId())) {
-				return null;
+			RequestResponse updateResponse = updateStatus(smsNumber, 1);
+			
+			if (Objects.isNull(updateResponse)) {
+				System.err.println("Failed to start listening for SMS code (" + updateResponse.getCode() + ")");
+				return "INTERRUPT";
+			}
+			if (!updateResponse.getResponseContent().equals("ACCESS_READY")) {
+				System.err.println("Failed to start listening for SMS code (" + updateResponse.getResponseContent() + ")");
+				return "INTERRUPT";
 			}
 			listening = true;
 		}
@@ -101,25 +108,42 @@ public class SMSActivate extends SMSSession {
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 		
 		if (!rr.validate()) {
-			System.err.println("Failed to retrieve SMS (" + rr.getCode() + ")");
+			System.err.println("Failed to retrieve SMS status (" + rr.getCode() + ")");
 			return null;
 		}
 		String resp = rr.getResponseContent();
 		
-		if (resp.equals("NO_ACTIVATION") || resp.equals("ERROR_SQL") || resp.equals("BAD_KEY") || resp.equals("BAD_ACTION")) {
-			System.err.println("Failed to retrieve SMS (" + resp + ")");
+		if (resp.equals("STATUS_WAIT_CODE") || resp.equals("STATUS_WAIT_RETRY")) {
 			return null;
+		}
+		if (resp.equals("STATUS_WAIT_RESEND")) {
+			RequestResponse updateResponse = updateStatus(smsNumber, 6);
+			
+			if (Objects.isNull(updateResponse)) {
+				System.err.println("Failed to confirm resending SMS (" + updateResponse.getCode() + ")");
+				return "INTERRUPT";
+			}
+			if (!updateResponse.getResponseContent().equals("ACCESS_RETRY_GET")) {
+				System.err.println("Failed to start listening for SMS code (" + updateResponse.getResponseContent() + ")");
+				return "INTERRUPT";
+			}
+		}
+		if (resp.equals("STATUS_CANCEL")) {
+			System.err.println("Number was canceled externally");
+			return "INTERRUPT";
 		}
 		if (!resp.startsWith("STATUS_OK")) {
-			System.err.println("Failed to retrieve SMS, unexpected response (" + resp + ")");
-			return null;
+			System.err.println("Failed to retrieve SMS with unexpected response (" + resp + ")");
+			return "INTERRUPT";
 		}
-		fb.add("status", -1);
+		RequestResponse updateResponse = updateStatus(smsNumber, 6);
 		
-		rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
-		
-		if (!rr.validate()) {
-			System.err.println("Failed to cancel number (" + rr.getCode() + ")");
+		if (Objects.isNull(updateResponse)) {
+			System.err.println("Failed to finish number use (" + updateResponse.getCode() + ")");
+		}
+		if (Objects.nonNull(updateResponse) && !updateResponse.getResponseContent().equals("ACCESS_ACTIVATION") 
+				&& !updateResponse.getResponseContent().equals("ACCESS_CANCEL")) {
+			System.err.println("Failed to finish number use (" + updateResponse.getResponseContent() + ")");
 		}
 		String[] args = resp.split(":");
 		return resp.substring(args[0].length(), resp.length());
@@ -127,17 +151,14 @@ public class SMSActivate extends SMSSession {
 
 	@Override
 	public void banNumber(SMSNumber smsNumber) {
-		FormBody fb = new FormBody();
-		fb.add("api_key", getAPIKey());
-		fb.add("action", "getStatus");
-		fb.add("id", smsNumber.getId());
-		fb.add("status", 6);
+		RequestResponse updateResponse = updateStatus(smsNumber, 8);
 		
-		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
-		
-		if (!rr.validate()) {
-			System.err.println("Failed to ban number");
+		if (Objects.isNull(updateResponse)) {
+			System.err.println("Failed to ban number (" + updateResponse.getCode() + ")");
 			return;
+		}
+		if (!updateResponse.getResponseContent().equals("ACCESS_CANCEL")) {
+			System.err.println("Failed to ban number (" + updateResponse.getResponseContent() + ")");
 		}
 	}
 

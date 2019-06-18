@@ -133,9 +133,12 @@ public class SMSTask implements AutoCloseable {
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+			if (Objects.nonNull(sms) && sms.equals("INTERRUPT")) {
+				break;
+			}
 			elapsed += 20;
 		}
-		if (Objects.isNull(sms)) {
+		if (Objects.isNull(sms) || sms.equals("INTERRUPT")) {
 			System.err.println("Failed to retrieve SMS");
 			return null;
 		}
@@ -159,12 +162,12 @@ public class SMSTask implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		if (Objects.nonNull(c)) {
 			c.close();
 			c = null;
 		}
-		if (Objects.nonNull(session)) {
+		if (Objects.nonNull(session) && Objects.nonNull(smsNumber)) {
 			if (!smsReceived) {
 				session.banNumber(smsNumber);
 			}
