@@ -3,6 +3,7 @@ package com.nattguld.sms.tasks;
 import com.nattguld.http.HttpClient;
 import com.nattguld.sms.SMSProvider;
 import com.nattguld.sms.numbers.SMSNumber;
+import com.nattguld.util.logging.Logger;
 
 /**
  * 
@@ -37,6 +38,11 @@ public abstract class SMSSession {
 	 */
 	private final String code;
 	
+	/**
+	 * The logger.
+	 */
+	private final Logger logger;
+	
 	
 	/**
 	 * Creates a new SMS session.
@@ -57,6 +63,7 @@ public abstract class SMSSession {
 		this.apiKey = apiKey;
 		this.c = c;
 		this.code = code;
+		this.logger = new Logger(provider.getName());
 	}
 	
 	/**
@@ -88,6 +95,15 @@ public abstract class SMSSession {
 	 * @return The balance.
 	 */
 	public abstract String getBalance();
+	
+	/**
+	 * Retrieves the logger.
+	 * 
+	 * @return The logger.
+	 */
+	public Logger getLogger() {
+		return logger;
+	}
 	
 	/**
 	 * Retrieves the SMS provider.

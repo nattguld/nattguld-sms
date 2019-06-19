@@ -110,8 +110,10 @@ public class SMSTask implements AutoCloseable {
 			ex.printStackTrace();
 		}
 		if (Objects.isNull(smsNumber) || Objects.isNull(smsNumber.getNumber())) {
+			session.getLogger().error("No phone number received");
 			return null;
 		}
+		session.getLogger().error("Received phone number: " + smsNumber.getNumber());
 		return smsNumber;
 	}
 	
@@ -124,11 +126,11 @@ public class SMSTask implements AutoCloseable {
 		String sms = null;
 		int elapsed = 0;
 		
-		while (Objects.isNull(sms) && elapsed >= timeout) {
+		while (Objects.isNull(sms) && elapsed < timeout) {
 			Misc.sleep(20000);
 			
 			try {
-				System.out.println("Checking if SMS arrived for " + smsNumber.getNumber());
+				session.getLogger().info("[" + smsNumber.getNumber() + "]: Checking is SMS arrived");
 				sms = session.retrieveSMS(smsNumber);
 				
 			} catch (Exception ex) {
@@ -137,9 +139,10 @@ public class SMSTask implements AutoCloseable {
 			elapsed += 20;
 		}
 		if (Objects.isNull(sms) || sms.equals("INTERRUPT")) {
-			System.err.println("Failed to retrieve SMS");
+			session.getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to retrieve SMS");
 			return null;
 		}
+		session.getLogger().warning("[" + smsNumber.getNumber() + "]: Received SMS");
 		this.smsReceived = true;
 		return sms;
 	}

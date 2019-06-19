@@ -37,7 +37,7 @@ public class SMSPVA extends SMSSession {
 				+ getCode() + "&id=1&apikey=" + getAPIKey()));
 		
 		if (!rr.validate()) {
-			System.err.println("Failed to request number (" + rr.getCode() + ")");
+			getLogger().error("Failed to receive number (" + rr.getCode() + ")");
 			return null;
 		}
 		JsonObject jsonObject = rr.getAsJsonElement().getAsJsonObject();
@@ -46,7 +46,7 @@ public class SMSPVA extends SMSSession {
 		String id = jsonObject.get("id").getAsString();
 		
 		if (number.equals("2")) {
-			System.out.println("SMSPVA asked us to wait 60 seconds to take a number, waiting...");
+			getLogger().info("We got requested to wait 60 seconds before requesting a number");
 			Misc.sleep(60000);
 			return requestNumber();
 		}
@@ -55,14 +55,14 @@ public class SMSPVA extends SMSSession {
 
 	@Override
 	public String retrieveSMS(SMSNumber smsNumber) {
-		RequestResponse r = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=get_sms&country=RU&service=" 
+		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=get_sms&country=RU&service=" 
 				+ getCode() + "&id=" + smsNumber.getId() + "&apikey=" + getAPIKey()));
 				
-		if (!r.validate()) {
-			System.err.println("Failed to request SMS");
+		if (!rr.validate()) {
+			getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to request SMS (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject jsonObject = r.getAsJsonElement().getAsJsonObject();
+		JsonObject jsonObject = rr.getAsJsonElement().getAsJsonObject();
 					
 		String response = jsonObject.get("response").getAsString();
 					
@@ -74,26 +74,25 @@ public class SMSPVA extends SMSSession {
 
 	@Override
 	public void banNumber(SMSNumber smsNumber) {
-		RequestResponse r = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=ban&service=" 
+		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=ban&service=" 
 				+ getCode() + "&apikey=" + getAPIKey() + "&id=" + smsNumber.getId()));
 	
-		if (!r.validate()) {
-			System.err.println("Failed to ban number " + smsNumber.getNumber());
+		if (!rr.validate()) {
+			getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to ban number (" + rr.getCode() + ")");
 			return;
 		}
 	}
 
 	@Override
 	public String getBalance() {
-		RequestResponse r = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=get_balance&service=" 
+		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=get_balance&service=" 
 				+ getCode() + "&apikey=" + getAPIKey()));
 	
-		if (!r.validate()) {
-			System.err.println("Failed to retrieve balance");
+		if (!rr.validate()) {
+			getLogger().warning("Failed to retrieve balance (" + rr.getCode() + ")");
 			return "-1";
 		}
-		JsonObject jsonObject = r.getAsJsonElement().getAsJsonObject();
-		
+		JsonObject jsonObject = rr.getAsJsonElement().getAsJsonObject();
 		return jsonObject.get("balance").getAsString();
 	}
 

@@ -56,7 +56,7 @@ public class GetSMSCode extends SMSSession {
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 		
 		if (!rr.validate()) {
-			System.err.println("Failed to login (" + rr.getCode() + ")");
+			getLogger().error("Failed to login (" + rr.getCode() + ")");
 			return false;
 		}
 		this.balance = rr.getAsDoc().text().split("\\|")[1];
@@ -80,7 +80,7 @@ public class GetSMSCode extends SMSSession {
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 	
 		if (!rr.validate()) {
-			System.err.println("Failed to request number (" + rr.getCode() + ")");
+			getLogger().error("Failed to request number (" + rr.getCode() + ")");
 			return null;
 		}
 		return new SMSNumber("na", rr.getResponseContent());
@@ -98,7 +98,7 @@ public class GetSMSCode extends SMSSession {
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 		
 		if (!rr.validate()) {
-			System.err.println("Failed to retrieve SMS (" + rr.getCode() + ")");
+			getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to request SMS (" + rr.getCode() + ")");
 			return null;
 		}
 		String response = rr.getResponseContent();
@@ -121,7 +121,7 @@ public class GetSMSCode extends SMSSession {
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 		
 		if (!rr.validate()) {
-			System.err.println("Failed to ban number (" + rr.getCode() + ")");
+			getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to ban number (" + rr.getCode() + ")");
 			return;
 		}
 	}
