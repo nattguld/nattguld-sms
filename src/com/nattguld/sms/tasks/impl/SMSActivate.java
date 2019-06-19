@@ -50,8 +50,8 @@ public class SMSActivate extends SMSSession {
 		FormBody fb = new FormBody();
 		fb.add("api_key", getAPIKey());
 		fb.add("action", "setStatus");
-		fb.add("id", smsNumber.getId());
 		fb.add("status", status);
+		fb.add("id", smsNumber.getId());
 		
 		RequestResponse rr = getClient().dispatchRequest(new PostRequest(getSMSProvider().getEndpoint(), 200, fb));
 		

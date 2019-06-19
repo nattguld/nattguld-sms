@@ -34,7 +34,7 @@ public class SMSConfig extends Config {
 	/**
 	 * The SMS receive timeout in seconds.
 	 */
-	private int smsReceiveTimeout;
+	private int smsReceiveTimeout = 180;
 	
 	
 	@Override
@@ -42,7 +42,12 @@ public class SMSConfig extends Config {
 		this.smsProvider = (SMSProvider)reader.getAsObject("sms_provider", SMSProvider.class, SMSProvider.NONE);
 		this.username = reader.getAsString("username", null);
 		this.apiKey = reader.getAsString("api_key", null);
-		this.smsReceiveTimeout = reader.getAsInt("sms_receive_timeout", 580);
+		this.smsReceiveTimeout = reader.getAsInt("sms_receive_timeout", 180);
+		
+		if (smsReceiveTimeout == 0) {
+			smsReceiveTimeout = 180;
+			save();
+		}
 	}
 	
 	@Override

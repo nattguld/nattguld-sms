@@ -109,7 +109,7 @@ public class SMSTask implements AutoCloseable {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		if (Objects.isNull(smsNumber.getNumber())) {
+		if (Objects.isNull(smsNumber) || Objects.isNull(smsNumber.getNumber())) {
 			return null;
 		}
 		return smsNumber;
@@ -128,6 +128,7 @@ public class SMSTask implements AutoCloseable {
 			Misc.sleep(20000);
 			
 			try {
+				System.out.println("Checking if SMS arrived for " + smsNumber.getNumber());
 				sms = session.retrieveSMS(smsNumber);
 				
 			} catch (Exception ex) {
