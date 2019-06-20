@@ -9,6 +9,7 @@ import com.nattguld.http.response.RequestResponse;
 import com.nattguld.sms.SMSProvider;
 import com.nattguld.sms.numbers.SMSNumber;
 import com.nattguld.sms.tasks.SMSSession;
+import com.nattguld.util.Misc;
 
 /**
  * 
@@ -92,13 +93,12 @@ public class SMSActivate extends SMSSession {
 			
 			if (Objects.isNull(updateResponse)) {
 				getLogger().warning("[" + smsNumber.getNumber() + "] Failed to start listening for SMS (" + updateResponse.getCode() + ")");
-				return null;
 			}
 			if (!updateResponse.getResponseContent().equals("ACCESS_READY")) {
 				getLogger().warning("[" + smsNumber.getNumber() + "] Failed to start listening for SMS (" + updateResponse.getResponseContent() + ")");
-				return null;
 			}
 			listening = true;
+			Misc.sleep(2000);
 		}
 		FormBody fb = new FormBody();
 		fb.add("api_key", getAPIKey());

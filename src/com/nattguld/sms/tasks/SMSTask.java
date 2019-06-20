@@ -130,7 +130,7 @@ public class SMSTask implements AutoCloseable {
 			Misc.sleep(20000);
 			
 			try {
-				session.getLogger().info("[" + smsNumber.getNumber() + "]: Checking is SMS arrived");
+				session.getLogger().info("[" + smsNumber.getNumber() + "]: Checking if SMS arrived");
 				sms = session.retrieveSMS(smsNumber);
 				
 			} catch (Exception ex) {
