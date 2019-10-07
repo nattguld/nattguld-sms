@@ -64,24 +64,66 @@ public class SMSConfig extends Config {
 	}
 	
 	/**
-	 * Updates the SMS configs.
+	 * Modifies the SMS provider.
 	 * 
 	 * @param smsProvider The new SMS provider.
 	 * 
-	 * @param username The username.
-	 * 
-	 * @param apiKey The API key.
-	 * 
-	 * @return The SMS config.
+	 * @return The config.
 	 */
-	public SMSConfig update(SMSProvider smsProvider, String username, String apiKey) {
+	public SMSConfig setSMSProvider(SMSProvider smsProvider) {
 		this.smsProvider = smsProvider;
-		
-		setUsername(smsProvider.requiresUsername() ? username : null);
-		setAPIKey(smsProvider.requiresAPIKey() ? apiKey : null);
-		
-		save();
 		return this;
+	}
+	
+	/**
+	 * Retrieves the SMS provider.
+	 * 
+	 * @return The SMS provider.
+	 */
+	public SMSProvider getSMSProvider() {
+		return smsProvider;
+	}
+	
+	/**
+	 * Modifies the username.
+	 * 
+	 * @param username The new username.
+	 * 
+	 * @return The config.
+	 */
+	public SMSConfig setUsername(String username) {
+		this.username = username.isEmpty() ? null : username;
+		return this;
+	}
+	
+	/**
+	 * Retrieves the username.
+	 * 
+	 * @return The username.
+	 */
+	public String getUsername() {
+		return username;
+	}
+	
+	/**
+	 * Modifies the API key.
+	 * 
+	 * @param apiKey The new API key.
+	 * 
+	 * @return The config.
+	 */
+	public SMSConfig setAPIKey(String apiKey) {
+		this.apiKey = apiKey.isEmpty() ? null : apiKey;
+		return this;
+	}
+	
+	/**
+	 * Retrieves the API key.
+	 * 
+	 * @return The API key.
+	 */
+	public String getAPIKey() {
+		return apiKey;
 	}
 	
 	/**
@@ -108,72 +150,13 @@ public class SMSConfig extends Config {
 	}
 	
 	/**
-	 * Validates the SMS configs.
+	 * Retrieves whether the SMS config is valid or not.
 	 * 
 	 * @return The result.
 	 */
-	public String validate() {
-		if (Objects.isNull(getSMSProvider())) {
-			return "No SMS provider found";
-		}
-		if (getSMSProvider().requiresUsername() && Objects.isNull(getUsername())) {
-			return "Username required for " + getSMSProvider().getName();
-		}
-		if (getSMSProvider().requiresAPIKey() && Objects.isNull(getAPIKey())) {
-			return "API key required for " + getSMSProvider().getName();
-		}
-		return null;
-	}
-	
-	/**
-	 * Retrieves the SMS provider.
-	 * 
-	 * @return The SMS provider.
-	 */
-	public SMSProvider getSMSProvider() {
-		return smsProvider;
-	}
-	
-	/**
-	 * Modifies the username.
-	 * 
-	 * @param username The new username.
-	 * 
-	 * @return The SMS config.
-	 */
-	protected SMSConfig setUsername(String username) {
-		this.username = username;
-		return this;
-	}
-	
-	/**
-	 * Retrieves the username.
-	 * 
-	 * @return The username.
-	 */
-	public String getUsername() {
-		return username;
-	}
-	
-	/**
-	 * Modifies the API key.
-	 * 
-	 * @param apiKey The new API key.
-	 * 
-	 * @return The SMS config.
-	 */
-	protected SMSConfig setAPIKey(String apiKey) {
-		this.apiKey = apiKey;
-		return this;
-	}
-	
-	/**
-	 * Retrieves the API key.
-	 * 
-	 * @return The API key.
-	 */
-	public String getAPIKey() {
-		return apiKey;
+	public boolean isValid() {
+		return Objects.nonNull(getSMSProvider()) && (!getSMSProvider().requiresUsername() || Objects.nonNull(getUsername()))
+				&& (!smsProvider.requiresAPIKey() || Objects.nonNull(getAPIKey()));
 	}
 	
 	/**
