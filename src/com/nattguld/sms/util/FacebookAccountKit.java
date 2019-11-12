@@ -1,6 +1,6 @@
 package com.nattguld.sms.util;
 
-import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.HttpClient;
 import com.nattguld.http.requests.impl.PostRequest;
 import com.nattguld.http.response.RequestResponse;
@@ -69,19 +69,19 @@ public class FacebookAccountKit {
 		logger.debug("Requesting confirmation code to " + phoneNumber);
 		
 		try {
-			RequestResponse r = c.dispatchRequest(new PostRequest("https://graph.accountkit.com/v1.2/start_login?access_token=" + key 
+			RequestResponse rr = c.dispatchRequest(new PostRequest("https://graph.accountkit.com/v1.2/start_login?access_token=" + key 
 					+ "&credentials_type=phone_number&fb_app_events_enabled=1&fields=privacy_policy%2Cterms_of_service&locale=en_US&logging_ref=" 
 					+ uid + "&phone_number=" + phoneNumber + "&response_type=token&sdk=ios", 200));
 		
-			if (!r.validate()) {
+			if (!rr.validate()) {
 				return "Failed to request confirmation code for " + phoneNumber;
 			}
-			if (r.getAsDoc().text().contains("Please enter a valid phone number")) {
+			if (rr.getAsDoc().text().contains("Please enter a valid phone number")) {
 				return "Failed to request confirmation code, phone number " + phoneNumber + " is invalid";
 			}
-	    	JsonObject jsonObject = r.getAsJsonElement().getAsJsonObject();
+			JsonReader jsonReader = rr.getJsonReader();
 	    	
-	    	this.loginRequestCode = jsonObject.get("login_request_code").getAsString();
+	    	this.loginRequestCode = jsonReader.getAsString("login_request_code");
 	    	
 	    	return null;
 			
@@ -105,26 +105,26 @@ public class FacebookAccountKit {
 	 */
 	public Object verifyConfirmationCode(HttpClient c, String confirmationCode) throws Exception {
 		try {
-			RequestResponse r = c.dispatchRequest(new PostRequest("https://graph.accountkit.com/v1.2/confirm_login?access_token=" 
+			RequestResponse rr = c.dispatchRequest(new PostRequest("https://graph.accountkit.com/v1.2/confirm_login?access_token=" 
 		+ key + "&confirmation_code=" + confirmationCode + "&credentials_type=phone_number&fb_app_events_enabled=1&fields=privacy_policy%2Cterms_of_service&locale=en_US&logging_ref=" 
 					+ uid + "&login_request_code=" + loginRequestCode + "&phone_number=" + phoneNumber + "&response_type=token&sdk=ios", 200));
 		
-			if (!r.validate()) {
-				if (!r.validate(400)) {
+			if (!rr.validate()) {
+				if (!rr.validate(400)) {
 					return "Failed to verify confirmation code";
 				}
-				r = c.dispatchRequest(new PostRequest("https://graph.accountkit.com/v1.2/confirm_login?access_token=" 
+				rr = c.dispatchRequest(new PostRequest("https://graph.accountkit.com/v1.2/confirm_login?access_token=" 
 				+ key + "&confirmation_code=" + confirmationCode + "&credentials_type=phone_number&fb_app_events_enabled=1&fields=privacy_policy%2Cterms_of_service&locale=en_US&logging_ref=" 
 						+ uid + "&login_request_code=" + loginRequestCode + "&phone_number=" + phoneNumber + "&response_type=token&sdk=ios", 200));
 				
-				if (!r.validate()) {
+				if (!rr.validate()) {
 					return "Wrong confirmation code";
 				}
 			}
-			JsonObject jsonObject = r.getAsJsonElement().getAsJsonObject();
+			JsonReader jsonReader = rr.getJsonReader();
     	
-			String accessToken = jsonObject.get("access_token").getAsString();
-			String id = jsonObject.get("id").getAsString();
+			String accessToken = jsonReader.getAsString("access_token");
+			String id = jsonReader.getAsString("id");
 		
 			return new String[] {accessToken, id};
 		} catch (Exception ex) {

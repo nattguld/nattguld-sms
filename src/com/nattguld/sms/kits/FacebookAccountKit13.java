@@ -2,7 +2,7 @@ package com.nattguld.sms.kits;
 
 import java.util.Objects;
 
-import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.HttpClient;
 import com.nattguld.http.content.bodies.FormBody;
 import com.nattguld.http.requests.impl.PostRequest;
@@ -122,12 +122,12 @@ public class FacebookAccountKit13 {
 		if (!rr.validate()) {
 			return "Failed to login (" + rr.getCode() + ")";
 		}
-		JsonObject resp = rr.getAsJsonElement().getAsJsonObject();
+		JsonReader jsonReader = rr.getJsonReader();
 		
-		if (!resp.has("login_request_code")) {
+		if (!jsonReader.has("login_request_code")) {
 			return "Failed to login (" + rr.getResponseContent() + ")";
 		}
-		loginRequestCode = resp.get("login_request_code").getAsString();
+		loginRequestCode = jsonReader.getAsString("login_request_code");
 		
 		if (Objects.isNull(loginRequestCode) || loginRequestCode.isEmpty()) {
 			return "Failed to extract login request code";
@@ -160,14 +160,14 @@ public class FacebookAccountKit13 {
 		if (!rr.validate()) {
 			return new KitResponse(false, "Failed to login (" + rr.getCode() + ")");
 		}
-		JsonObject resp = rr.getAsJsonElement().getAsJsonObject();
+		JsonReader jsonReader = rr.getJsonReader();
 		
-		if (!resp.has("access_token")) {
+		if (!jsonReader.has("access_token")) {
 			return new KitResponse(false, "Failed to confirm login (" + rr.getResponseContent() + ")");
 		}
-		String accessToken = resp.get("access_token").getAsString();
+		String accessToken = jsonReader.getAsString("access_token");
 		@SuppressWarnings("unused")
-		String id = resp.get("id").getAsString();
+		String id = jsonReader.getAsString("id");
 		
 		return new KitResponse(true, accessToken);
 	}

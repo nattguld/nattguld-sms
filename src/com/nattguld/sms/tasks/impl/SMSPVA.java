@@ -1,6 +1,6 @@
 package com.nattguld.sms.tasks.impl;
 
-import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.HttpClient;
 import com.nattguld.http.requests.impl.GetRequest;
 import com.nattguld.http.response.RequestResponse;
@@ -40,10 +40,10 @@ public class SMSPVA extends SMSSession {
 			getLogger().error("Failed to receive number (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject jsonObject = rr.getAsJsonElement().getAsJsonObject();
+		JsonReader jsonReader = rr.getJsonReader();
 		
-		String number = jsonObject.get("number").getAsString();
-		String id = jsonObject.get("id").getAsString();
+		String number = jsonReader.getAsString("number");
+		String id = jsonReader.getAsString("id");
 		
 		if (number.equals("2")) {
 			getLogger().info("We got requested to wait 60 seconds before requesting a number");
@@ -62,12 +62,12 @@ public class SMSPVA extends SMSSession {
 			getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to request SMS (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject jsonObject = rr.getAsJsonElement().getAsJsonObject();
+		JsonReader jsonReader = rr.getJsonReader();
 					
-		String response = jsonObject.get("response").getAsString();
+		String response = jsonReader.getAsString("response");
 					
 		if (response.equals("1")) {
-			return jsonObject.get("sms").getAsString();
+			return jsonReader.getAsString("sms");
 		}
 		return null;
 	}
@@ -92,8 +92,8 @@ public class SMSPVA extends SMSSession {
 			getLogger().warning("Failed to retrieve balance (" + rr.getCode() + ")");
 			return "-1";
 		}
-		JsonObject jsonObject = rr.getAsJsonElement().getAsJsonObject();
-		return jsonObject.get("balance").getAsString();
+		JsonReader jsonReader = rr.getJsonReader();
+		return jsonReader.getAsString("balance");
 	}
 
 }
