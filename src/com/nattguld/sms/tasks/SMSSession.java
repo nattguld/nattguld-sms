@@ -3,6 +3,7 @@ package com.nattguld.sms.tasks;
 import com.nattguld.http.HttpClient;
 import com.nattguld.sms.SMSProvider;
 import com.nattguld.sms.numbers.SMSNumber;
+import com.nattguld.util.locale.Country;
 import com.nattguld.util.logging.Logger;
 
 /**
@@ -39,6 +40,11 @@ public abstract class SMSSession {
 	private final String code;
 	
 	/**
+	 * The country.
+	 */
+	private final Country country;
+	
+	/**
 	 * The logger.
 	 */
 	private final Logger logger;
@@ -56,13 +62,16 @@ public abstract class SMSSession {
 	 * @param c The http session if required.
 	 * 
 	 * @param code The platform code.
+	 * 
+	 * @param country The country.
 	 */
-	public SMSSession(SMSProvider provider, String username, String apiKey, HttpClient c, String code) {
+	public SMSSession(SMSProvider provider, String username, String apiKey, HttpClient c, String code, Country country) {
 		this.provider = provider;
 		this.username = username;
 		this.apiKey = apiKey;
 		this.c = c;
 		this.code = code;
+		this.country = country;
 		this.logger = new Logger(provider.getName());
 	}
 	
@@ -148,6 +157,15 @@ public abstract class SMSSession {
 	 */
 	protected String getCode() {
 		return code;
+	}
+	
+	/**
+	 * Retrieves the country.
+	 * 
+	 * @return The country.
+	 */
+	protected Country getCountry() {
+		return country;
 	}
 
 }

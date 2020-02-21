@@ -7,6 +7,7 @@ import com.nattguld.http.response.RequestResponse;
 import com.nattguld.sms.SMSProvider;
 import com.nattguld.sms.numbers.SMSNumber;
 import com.nattguld.sms.tasks.SMSSession;
+import com.nattguld.util.locale.Country;
 
 /**
  * 
@@ -37,9 +38,11 @@ public class GetSMSCode extends SMSSession {
 	 * @param c The http client session.
 	 * 
 	 * @param code The platform code.
+	 * 
+	 * @param country The country.
 	 */
-	public GetSMSCode(String username, String apiKey, HttpClient c, String code) {
-		super(SMSProvider.GETSMSCODE, username, apiKey, c, code);
+	public GetSMSCode(String username, String apiKey, HttpClient c, String code, Country country) {
+		super(SMSProvider.GETSMSCODE, username, apiKey, c, code, country);
 		
 		this.balance = "-1";
 	}

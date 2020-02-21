@@ -19,7 +19,7 @@ public class Manual extends SMSSession {
 	 * Creates a new SMS session.
 	 */
 	public Manual() {
-		super(SMSProvider.NONE, null, null, null, null);
+		super(SMSProvider.NONE, null, null, null, null, null);
 	}
 
 	@Override

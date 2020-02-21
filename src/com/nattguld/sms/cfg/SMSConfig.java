@@ -7,6 +7,7 @@ import com.nattguld.data.cfg.ConfigManager;
 import com.nattguld.data.json.JsonReader;
 import com.nattguld.data.json.JsonWriter;
 import com.nattguld.sms.SMSProvider;
+import com.nattguld.util.locale.Country;
 
 /**
  * 
@@ -32,6 +33,11 @@ public class SMSConfig extends Config {
 	private String apiKey;
 	
 	/**
+	 * The country.
+	 */
+	private Country country;
+	
+	/**
 	 * The SMS receive timeout in seconds.
 	 */
 	private int smsReceiveTimeout = 180;
@@ -43,6 +49,7 @@ public class SMSConfig extends Config {
 		this.username = reader.getAsString("username", null);
 		this.apiKey = reader.getAsString("api_key", null);
 		this.smsReceiveTimeout = reader.getAsInt("sms_receive_timeout", 180);
+		this.country = (Country)reader.getAsObject("country", Country.class, Country.RUSSIA);
 		
 		if (smsReceiveTimeout == 0) {
 			smsReceiveTimeout = 180;
@@ -56,6 +63,7 @@ public class SMSConfig extends Config {
 		writer.write("username", username);
 		writer.write("api_key", apiKey);
 		writer.write("sms_receive_timeout", smsReceiveTimeout);
+		writer.write("country", country);
 	}
 
 	@Override
@@ -124,6 +132,27 @@ public class SMSConfig extends Config {
 	 */
 	public String getAPIKey() {
 		return apiKey;
+	}
+	
+	/**
+	 * Modifies the country.
+	 * 
+	 * @param country The new country.
+	 * 
+	 * @return The config.
+	 */
+	public SMSConfig setCountry(Country country) {
+		this.country = country;
+		return this;
+	}
+	
+	/**
+	 * Retrieves the country.
+	 * 
+	 * @return The country.
+	 */
+	public Country getCountry() {
+		return country;
 	}
 	
 	/**

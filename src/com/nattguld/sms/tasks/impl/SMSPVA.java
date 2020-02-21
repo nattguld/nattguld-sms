@@ -5,9 +5,11 @@ import com.nattguld.http.HttpClient;
 import com.nattguld.http.requests.impl.GetRequest;
 import com.nattguld.http.response.RequestResponse;
 import com.nattguld.sms.SMSProvider;
+import com.nattguld.sms.cfg.SMSConfig;
 import com.nattguld.sms.numbers.SMSNumber;
 import com.nattguld.sms.tasks.SMSSession;
 import com.nattguld.util.Misc;
+import com.nattguld.util.locale.Country;
 
 /**
  * 
@@ -26,36 +28,67 @@ public class SMSPVA extends SMSSession {
 	 * @param c The http client session.
 	 * 
 	 * @param code The platform code.
+	 * 
+	 * @param country The country.
 	 */
-	public SMSPVA(String apiKey, HttpClient c, String code) {
-		super(SMSProvider.SMSPVA, null, apiKey, c, code);
+	public SMSPVA(String apiKey, HttpClient c, String code, Country country) {
+		super(SMSProvider.SMSPVA, null, apiKey, c, code, country);
 	}
 
 	@Override
 	public SMSNumber requestNumber() {
-		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=get_number&country=RU&service=" 
+		String countryCode = getCountry() == Country.UNITED_KINGDOM ? "UK" : getCountry().getCode().toUpperCase();
+		
+		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() 
+				+ "?metod=get_number&country=" + countryCode + "&service=" 
 				+ getCode() + "&id=1&apikey=" + getAPIKey()));
 		
 		if (!rr.validate()) {
 			getLogger().error("Failed to receive number (" + rr.getCode() + ")");
 			return null;
 		}
+		if (!rr.getResponseContent().contains("response")) {
+			getLogger().info(rr.getResponseContent());
+			return null;
+		}
 		JsonReader jsonReader = rr.getJsonReader();
 		
+		String response = jsonReader.getAsString("response");
+		
+		if (!response.equals("1")) {
+			switch (response) {
+			case "2":
+				getLogger().info("No numbers available at the moment");
+				return null;
+				
+			case "5":
+				getLogger().info("You have exceeded the number of requests per minute");
+				Misc.sleep(60000);
+				return requestNumber();
+				
+			case "6":
+				getLogger().info("You will be banned for 10 minutes, because scored negative karma");
+				SMSConfig.getConfig().setAPIKey(null);
+				return null;
+				
+			case "7":
+				getLogger().info("You have exceeded the number of concurrent streams. SMS Wait from previous orders");
+				Misc.sleep(60000);
+				return requestNumber();
+			}
+		}
 		String number = jsonReader.getAsString("number");
 		String id = jsonReader.getAsString("id");
-		
-		if (number.equals("2")) {
-			getLogger().info("We got requested to wait 60 seconds before requesting a number");
-			Misc.sleep(60000);
-			return requestNumber();
-		}
-		return new SMSNumber(id, "7" + number);
+
+		return new SMSNumber(id, getCountry().getPhoneCode() + number);
 	}
 
 	@Override
 	public String retrieveSMS(SMSNumber smsNumber) {
-		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() + "?metod=get_sms&country=RU&service=" 
+		String countryCode = getCountry() == Country.UNITED_KINGDOM ? "UK" : getCountry().getCode().toUpperCase();
+		
+		RequestResponse rr = getClient().dispatchRequest(new GetRequest(getSMSProvider().getEndpoint() 
+				+ "?metod=get_sms&country=" + countryCode + "&service=" 
 				+ getCode() + "&id=" + smsNumber.getId() + "&apikey=" + getAPIKey()));
 				
 		if (!rr.validate()) {

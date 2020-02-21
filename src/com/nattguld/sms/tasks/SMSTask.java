@@ -74,7 +74,7 @@ public class SMSTask implements AutoCloseable {
 		switch (SMSConfig.getConfig().getSMSProvider()) {
 		case GETSMSCODE:
 			this.c = new HttpClient();
-			this.session = new GetSMSCode(SMSConfig.getConfig().getUsername(), SMSConfig.getConfig().getAPIKey(), c, code);
+			this.session = new GetSMSCode(SMSConfig.getConfig().getUsername(), SMSConfig.getConfig().getAPIKey(), c, code, SMSConfig.getConfig().getCountry());
 			break;
 			
 		case NONE:
@@ -83,12 +83,12 @@ public class SMSTask implements AutoCloseable {
 			
 		case SMSPVA:
 			this.c = new HttpClient();
-			this.session = new SMSPVA(SMSConfig.getConfig().getAPIKey(), c, code);
+			this.session = new SMSPVA(SMSConfig.getConfig().getAPIKey(), c, code, SMSConfig.getConfig().getCountry());
 			break;
 			
 		case SMS_ACTIVATE:
 			this.c = new HttpClient();
-			this.session = new SMSActivate(SMSConfig.getConfig().getAPIKey(), c, code);
+			this.session = new SMSActivate(SMSConfig.getConfig().getAPIKey(), c, code, SMSConfig.getConfig().getCountry());
 			break;
 			
 		default:
@@ -113,7 +113,7 @@ public class SMSTask implements AutoCloseable {
 			session.getLogger().error("No phone number received");
 			return null;
 		}
-		session.getLogger().error("Received phone number: " + smsNumber.getNumber());
+		session.getLogger().info("Received phone number: " + smsNumber.getNumber());
 		return smsNumber;
 	}
 	
@@ -142,7 +142,7 @@ public class SMSTask implements AutoCloseable {
 			session.getLogger().warning("[" + smsNumber.getNumber() + "]: Failed to retrieve SMS");
 			return null;
 		}
-		session.getLogger().warning("[" + smsNumber.getNumber() + "]: Received SMS");
+		session.getLogger().info("[" + smsNumber.getNumber() + "]: Received SMS");
 		this.smsReceived = true;
 		return sms;
 	}
